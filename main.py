@@ -6,7 +6,6 @@ from sqlalchemy import create_engine
 import os
 from fastapi import Depends
 
-
 import dbsqllite as dbsql
 
 
@@ -68,6 +67,7 @@ def get_db():
     finally:
         db.close()
 
+
 def sqlalchemymodel_in_basemodel(sqlalchemymodel):
     return TodoResponse(
         id=sqlalchemymodel.id,
@@ -75,6 +75,7 @@ def sqlalchemymodel_in_basemodel(sqlalchemymodel):
         description=sqlalchemymodel.description,
         is_completed=sqlalchemymodel.is_completed
     )
+
 
 # Создать задачу
 @app.post('/todos', response_model=TodoResponse, status_code=201)
@@ -86,7 +87,8 @@ async def add_todo(todo_data: TodoCreate, db: Session = Depends(get_db)) -> Todo
 
 # Получить все задачи
 @app.get('/todos', response_model=TodosListResponse, status_code=200)
-async def get_all_todo_taking_limit(limit: Annotated[Optional[int], Query()] = None, db: Session = Depends(get_db)) -> TodosListResponse:
+async def get_all_todo_taking_limit(limit: Annotated[Optional[int], Query()] = None,
+                                    db: Session = Depends(get_db)) -> TodosListResponse:
     lst_todos = dbsql.get_all_todo_taking_limit_in_db(db, limit)
     todos_response = [sqlalchemymodel_in_basemodel(todo) for todo in lst_todos]
     return TodosListResponse(todos_list=todos_response)
@@ -103,7 +105,8 @@ async def get_todo_id(id_todo: Annotated[int, Path(..., gt=-1)], db: Session = D
 
 # Изменить задачу целиком
 @app.put('/todos/{id_todo}', response_model=TodoResponse, status_code=200)
-async def update_whole_id_todo(todo_data: TodoCreate, id_todo: Annotated[int, Path(..., gt=-1)], db: Session = Depends(get_db)) -> TodoResponse:
+async def update_whole_id_todo(todo_data: TodoCreate, id_todo: Annotated[int, Path(..., gt=-1)],
+                               db: Session = Depends(get_db)) -> TodoResponse:
     dict_todo_data = todo_data.model_dump()
     obj_todo_sqlite = dbsql.update_id_todo_in_db(db, id_todo, dict_todo_data)
     if obj_todo_sqlite is None:
@@ -113,7 +116,8 @@ async def update_whole_id_todo(todo_data: TodoCreate, id_todo: Annotated[int, Pa
 
 # Изменить указанные поля задачи
 @app.patch('/todos/{id_todo}', response_model=TodoResponse, status_code=200)
-async def update_select_field_id_todo(id_todo: Annotated[int, Path(..., gt=-1)], update_date: UpdateData = None, db: Session = Depends(get_db)) -> TodoResponse:
+async def update_select_field_id_todo(id_todo: Annotated[int, Path(..., gt=-1)], update_date: UpdateData = None,
+                                      db: Session = Depends(get_db)) -> TodoResponse:
     dict_update_date = update_date.model_dump(exclude_unset=True)
     obj_todo_sqlite = dbsql.update_id_todo_in_db(db, id_todo, dict_update_date)
     if obj_todo_sqlite is None:
