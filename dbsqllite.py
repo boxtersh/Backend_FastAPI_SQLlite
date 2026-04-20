@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine, select, String
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session, sessionmaker
 from dotenv import load_dotenv
 import os
 
@@ -10,6 +10,19 @@ class Base(DeclarativeBase): pass
 
 
 engine = create_engine(os.environ['DATABASE_URL'], future=True)
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine
+)
+
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 class Todo(Base):
@@ -22,9 +35,6 @@ class Todo(Base):
 
     def __repr__(self):
         return f'Todo(id={self.id}, title={self.title}, description={self.description}, is_completed={self.is_completed})'
-
-
-Base.metadata.create_all(engine)
 
 
 def add_todo_sqlite(db, dict_todo_data) -> Todo:

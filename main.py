@@ -2,11 +2,10 @@ from fastapi import FastAPI, status, HTTPException, Path, Query
 from pydantic import BaseModel, Field
 from typing import Optional, Annotated
 from sqlalchemy.orm import Session
-from sqlalchemy import create_engine
-import os
 from fastapi import Depends
 
 import dbsqllite as dbsql
+from dbsqllite import Base, engine, get_db
 
 
 class TodoCreate(BaseModel):
@@ -57,15 +56,7 @@ class TodosListResponse(BaseModel):
 
 
 app = FastAPI()
-engine = create_engine(os.environ['DATABASE_URL'], future=True)
-
-
-def get_db():
-    db = Session(engine)
-    try:
-        yield db
-    finally:
-        db.close()
+Base.metadata.create_all(engine)
 
 
 def sqlalchemymodel_in_basemodel(sqlalchemymodel):
@@ -96,7 +87,7 @@ async def get_all_todo_taking_limit(limit: Annotated[Optional[int], Query()] = N
 
 # Получить задачу по id
 @app.get('/todos/{id_todo}', response_model=TodoResponse, status_code=200)
-async def get_todo_id(id_todo: Annotated[int, Path(..., gt=-1)], db: Session = Depends(get_db)) -> TodoResponse:
+async def get_todo_id(id_todo: Annotated[int, Path(..., gt=0)], db: Session = Depends(get_db)) -> TodoResponse:
     obj_todo_sqlite = dbsql.get_todo_id(db, id_todo)
     if obj_todo_sqlite is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Задача с указанным ID не найдена')
@@ -105,7 +96,7 @@ async def get_todo_id(id_todo: Annotated[int, Path(..., gt=-1)], db: Session = D
 
 # Изменить задачу целиком
 @app.put('/todos/{id_todo}', response_model=TodoResponse, status_code=200)
-async def update_whole_id_todo(todo_data: TodoCreate, id_todo: Annotated[int, Path(..., gt=-1)],
+async def update_whole_id_todo(todo_data: TodoCreate, id_todo: Annotated[int, Path(..., gt=0)],
                                db: Session = Depends(get_db)) -> TodoResponse:
     dict_todo_data = todo_data.model_dump()
     obj_todo_sqlite = dbsql.update_id_todo_in_db(db, id_todo, dict_todo_data)
@@ -116,7 +107,7 @@ async def update_whole_id_todo(todo_data: TodoCreate, id_todo: Annotated[int, Pa
 
 # Изменить указанные поля задачи
 @app.patch('/todos/{id_todo}', response_model=TodoResponse, status_code=200)
-async def update_select_field_id_todo(id_todo: Annotated[int, Path(..., gt=-1)], update_date: UpdateData = None,
+async def update_select_field_id_todo(id_todo: Annotated[int, Path(..., gt=0)], update_date: UpdateData = None,
                                       db: Session = Depends(get_db)) -> TodoResponse:
     dict_update_date = update_date.model_dump(exclude_unset=True)
     obj_todo_sqlite = dbsql.update_id_todo_in_db(db, id_todo, dict_update_date)
@@ -127,7 +118,7 @@ async def update_select_field_id_todo(id_todo: Annotated[int, Path(..., gt=-1)],
 
 # Удалить задачу по id
 @app.delete('/todos/{id_todo}', response_model=TodoResponse, status_code=200)
-async def delete_todo_id(id_todo: Annotated[int, Path(..., gt=-1)], db: Session = Depends(get_db)) -> TodoResponse:
+async def delete_todo_id(id_todo: Annotated[int, Path(..., gt=0)], db: Session = Depends(get_db)) -> TodoResponse:
     obj_todo_sqlite = dbsql.delete_id_todo_in_db(db, id_todo)
     if obj_todo_sqlite is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Задача с указанным ID не найдена')
