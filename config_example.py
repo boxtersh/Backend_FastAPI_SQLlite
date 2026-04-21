@@ -11,4 +11,8 @@ class SQLLiteSettings:
     SQL_LITE = "DATABASE_URL"
 
 
+mysql_conf = MysqlSettings()
+sql_lite_conf = SQLLiteSettings()
+
+
 
