@@ -1,15 +1,21 @@
 from sqlalchemy import create_engine, select, String
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session, sessionmaker
-from dotenv import load_dotenv
-import os
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
-load_dotenv()
+from config import mysql_conf, sql_lite_conf
+
+MYSQL = (
+    f"{mysql_conf.MYSQL}{mysql_conf.USER}:{mysql_conf.PASSWORD}"
+    f"@{mysql_conf.HOST}:{mysql_conf.PORT}/{mysql_conf.DATABASE}"
+)
+SQL_LITE = sql_lite_conf.SQL_LITE
+
+DATABASE_URL = SQL_LITE
 
 
 class Base(DeclarativeBase): pass
 
 
-engine = create_engine(os.environ['DATABASE_URL'], future=True)
+engine = create_engine(DATABASE_URL, future=True)
 SessionLocal = sessionmaker(
     autocommit=False,
     autoflush=False,
