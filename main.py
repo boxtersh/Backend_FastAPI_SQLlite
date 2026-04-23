@@ -56,15 +56,6 @@ app = FastAPI()
 Base.metadata.create_all(engine)
 
 
-# def sqlalchemymodel_in_basemodel(sqlalchemymodel):
-#     return TodoResponse(
-#         id=sqlalchemymodel.id,
-#         title=sqlalchemymodel.title,
-#         description=sqlalchemymodel.description,
-#         is_completed=sqlalchemymodel.is_completed
-#     )
-
-
 # Создать задачу
 @app.post('/todos', response_model=TodoResponse, status_code=201)
 async def add_todo(todo_data: TodoCreate, db: Session = Depends(get_db)) -> TodoResponse:
