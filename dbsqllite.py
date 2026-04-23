@@ -1,21 +1,21 @@
 from sqlalchemy import create_engine, select, String
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
-from config import mysql_conf, sql_lite_conf
+from config import MysqlSettings, SQLLiteSettings
 
 MYSQL = (
-    f"{mysql_conf.MYSQL}{mysql_conf.USER}:{mysql_conf.PASSWORD}"
-    f"@{mysql_conf.HOST}:{mysql_conf.PORT}/{mysql_conf.DATABASE}"
+    f"{MysqlSettings.MYSQL}{MysqlSettings.USER}:{MysqlSettings.PASSWORD}"
+    f"@{MysqlSettings.HOST}:{MysqlSettings.PORT}/{MysqlSettings.DATABASE}"
 )
-SQL_LITE = sql_lite_conf.SQL_LITE
-
-DATABASE_URL = SQL_LITE
+SQL_LITE = SQLLiteSettings.SQL_LITE
 
 
 class Base(DeclarativeBase): pass
 
 
-engine = create_engine(DATABASE_URL, future=True)
+DATABASE_URL = SQL_LITE
+engine = create_engine(DATABASE_URL, echo=True, future=True)
+
 SessionLocal = sessionmaker(
     autocommit=False,
     autoflush=False,
@@ -52,11 +52,13 @@ def add_todo_sqlite(db, dict_todo_data) -> Todo:
 
 
 def get_all_todo_taking_limit_in_db(db, limit: int | None) -> list[Todo]:
+    print(12)
     query = select(Todo)
     db.execute(query).scalars().all()
     if limit:
         query = query.limit(limit)
     lst_todo = db.execute(query).scalars().all()
+    print(13)
     return lst_todo
 
 
