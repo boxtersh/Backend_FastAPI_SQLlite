@@ -52,13 +52,11 @@ def add_todo_sqlite(db, dict_todo_data) -> Todo:
 
 
 def get_all_todo_taking_limit_in_db(db, limit: int | None) -> list[Todo]:
-    print(12)
     query = select(Todo)
     db.execute(query).scalars().all()
     if limit:
         query = query.limit(limit)
     lst_todo = db.execute(query).scalars().all()
-    print(13)
     return lst_todo
 
 
