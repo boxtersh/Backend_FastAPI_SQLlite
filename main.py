@@ -1,6 +1,6 @@
 from fastapi import FastAPI, status, HTTPException, Path, Query
 from pydantic import BaseModel, Field, ConfigDict
-from typing import Optional, Annotated
+from typing import Annotated
 from sqlalchemy.orm import Session
 from fastapi import Depends
 
@@ -14,7 +14,7 @@ class TodoCreate(BaseModel):
         max_length=100,
         description="Название задачи"
     )
-    description: Optional[str] = Field(
+    description: str | None = Field(
         min_length=6,
         max_length=100,
         description="Описание поставленной задачи"
@@ -29,18 +29,18 @@ class TodoResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
     title: str
-    description: Optional[str]
+    description: str | None
     is_completed: bool
 
 
 class UpdateData(BaseModel):
-    title: Optional[str] = Field(
+    title: str | None = Field(
         default=None,
         min_length=6,
         max_length=100,
         description="Описание поставленной задачи"
     )
-    description: Optional[str] = Field(
+    description: str | None = Field(
         default=None,
         min_length=6,
         max_length=100,
@@ -75,7 +75,7 @@ async def add_todo(todo_data: TodoCreate, db: Session = Depends(get_db)) -> Todo
 
 # Получить все задачи
 @app.get('/todos', response_model=list[TodoResponse], status_code=200)
-async def get_all_todo_taking_limit(limit: Annotated[Optional[int], Query()] = None,
+async def get_all_todo_taking_limit(limit: Annotated[int | None, Query()] = None,
                                     db: Session = Depends(get_db)) -> list[TodoResponse]:
     lst_todos = dbsql.get_all_todo_taking_limit_in_db(db, limit)
     todos_response = [TodoResponse.model_validate(todo) for todo in lst_todos]
